@@ -168,15 +168,15 @@ bot.on('message', async (event) => {
             count++
             event.message.text = saveItems
             const ar = event.message.text.split(' ')
-            let autoChoose = ''
-            while (saveChoose !== autoChoose) {
-              autoChoose = ar[rand(ar.length - 1)]
+            let atc = ar[rand(ar.length - 1)]
+            while (saveChoose !== atc) {
+              atc = ar[rand(ar.length - 1)]
             }
-            saveChoose = autoChoose
+            saveChoose = atc
             event.reply([
               {
                 type: 'text',
-                text: `選${autoChoose}吧!`
+                text: `選${atc}吧!`
               },
               {
                 type: 'sticker',
@@ -185,7 +185,7 @@ bot.on('message', async (event) => {
               },
               {
                 type: 'text',
-                text: '換一個請輸入「換」'
+                text: '換一個請輸入「換」\n或直接輸入選項'
               }
             ])
           } else {
@@ -229,7 +229,7 @@ bot.on('message', async (event) => {
               },
               {
                 type: 'text',
-                text: '換一個請輸入「換」'
+                text: '換一個請輸入「換」\n或直接輸入選項'
               }
             ])
           } else {
