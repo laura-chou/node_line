@@ -22,8 +22,8 @@ const bot = linebot({
 */
 const choose = '查詢行政機關辦公日曆，請輸入「1」\n查詢發票兌獎號碼，請輸入「2」\n選擇困難，請輸入「3」'
 const a1 = '查詢節日，請輸入「節日關鍵字」，例如：端午、春節\n查詢補假日，請輸入「補假日」\n查詢調整放假日，請輸入「調整日」\n查詢補上班日，請輸入「補班日」\n其他服務，請輸入「0」'
-const b1 = '很抱歉，「政府行政機關辦公日曆表」查無此資料' + 'P.s.我知道很爛，去怪政府吧'
-const a2 = '請輸入你的選項，例如：\n「買 不買」或\n「魯夫 索隆 娜美」或\n「珍珠蜂蜜鮮奶普洱 珍珠伯爵紅茶拿鐵 黑糖波霸厚鮮奶 百香雙響炮」\n每個選項請以空格分開'
+const b1 = '很抱歉，「政府行政機關辦公日曆表」查無此資料\nP.s.我知道很爛，去怪政府吧'
+const a2 = '請輸入你的選項，例如：\n「買 不買」或\n「魯夫 索隆 娜美」或\n「珍珠蜂蜜鮮奶普洱 珍珠伯爵紅茶拿鐵 黑糖波霸厚鮮奶 百香雙響炮」\n每個選項請以空格分開\n\n其他服務，請輸入「0」'
 const b2 = '別再換了，你還是自己決定吧!'
 const c2 = '你是哪裡有問題，一個選項有什麼選擇困難'
 const a3 = '請輸入要查詢的年月份，例如要查詢民國109年1月的兌獎號碼，請輸入「10901」'
@@ -31,6 +31,7 @@ let option = 0
 let check = false
 let reset = true
 let saveItems = ''
+let saveChoose = ''
 let count = 1
 // 當收到訊息時
 bot.on('message', async (event) => {
@@ -167,7 +168,11 @@ bot.on('message', async (event) => {
             count++
             event.message.text = saveItems
             const ar = event.message.text.split(' ')
-            const autoChoose = ar[rand(ar.length - 1)]
+            let autoChoose = ''
+            while (saveChoose !== autoChoose) {
+              autoChoose = ar[rand(ar.length - 1)]
+            }
+            saveChoose = autoChoose
             event.reply([
               {
                 type: 'text',
@@ -211,6 +216,7 @@ bot.on('message', async (event) => {
             saveItems = event.message.text
             count = 1
             const autoChoose = arr[rand(arr.length - 1)]
+            saveChoose = autoChoose
             event.reply([
               {
                 type: 'text',
@@ -227,7 +233,17 @@ bot.on('message', async (event) => {
               }
             ])
           } else {
-            event.reply(c2)
+            event.reply([
+              {
+                type: 'sticker',
+                packageId: '11537',
+                stickerId: '52002754'
+              },
+              {
+                type: 'text',
+                text: c2
+              }
+            ])
           }
         }
       }
