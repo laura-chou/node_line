@@ -169,10 +169,9 @@ bot.on('message', async (event) => {
             event.message.text = saveItems
             const ar = event.message.text.split(' ')
             let atc = ar[rand(ar.length - 1)]
-            while (saveChoose !== atc) {
+            while (saveChoose === atc) {
               atc = ar[rand(ar.length - 1)]
             }
-            saveChoose = atc
             event.reply([
               {
                 type: 'text',
@@ -185,7 +184,7 @@ bot.on('message', async (event) => {
               },
               {
                 type: 'text',
-                text: '換一個請輸入「換」\n或直接輸入選項'
+                text: '換一個請輸入「換」\n或重新輸入選項'
               }
             ])
           } else {
@@ -229,7 +228,7 @@ bot.on('message', async (event) => {
               },
               {
                 type: 'text',
-                text: '換一個請輸入「換」\n或直接輸入選項'
+                text: '換一個請輸入「換」\n或重新輸入選項'
               }
             ])
           } else {
