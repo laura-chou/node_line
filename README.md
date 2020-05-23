@@ -6,7 +6,5 @@
 ### 依照指示輸入數字即可開始查詢
 ---
 ![Alt text](/line.png)
-
-
-
-
+<a href="https://lin.ee/19sd1JCmM"><img src="https://scdn.line-apps.com/n/line_add_friends/btn/zh-Hant.png" alt="加入好友" height="36" border="0"></a>
+<img src="https://qr-official.line.me/sid/M/428vccdn.png">
