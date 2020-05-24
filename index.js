@@ -178,7 +178,7 @@ bot.on('message', async (event) => {
             event.message.text = saveItems
             const ar = event.message.text.split(' ')
             let atc = ar[rand(ar.length - 1)]
-            while (saveChoose === atc) {
+            while (saveChoose === atc || atc === '') {
               console.log('while')
               atc = ar[rand(ar.length - 1)]
             }
@@ -225,7 +225,10 @@ bot.on('message', async (event) => {
           if (arr.length > 1) {
             saveItems = event.message.text
             count = 1
-            const autoChoose = arr[rand(arr.length - 1)]
+            let autoChoose = arr[rand(arr.length - 1)]
+            while (autoChoose === '') {
+              autoChoose = arr[rand(arr.length - 1)]
+            }
             saveChoose = autoChoose
             event.reply([
               {
