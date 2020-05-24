@@ -23,9 +23,12 @@ const bot = linebot({
 const choose = '查詢行政機關辦公日曆，請輸入「1」\n查詢發票兌獎號碼，請輸入「2」\n選擇困難，請輸入「3」'
 const a1 = '查詢節日，請輸入「節日關鍵字」，例如：端午、春節\n查詢補假日，請輸入「補假日」\n查詢調整放假日，請輸入「調整日」\n查詢補上班日，請輸入「補班日」\n其他服務，請輸入「0」'
 const b1 = '很抱歉，「政府行政機關辦公日曆表」查無此資料\nP.s.我知道很爛，去怪政府吧'
-const a2 = '請輸入你的選項，例如：\n「買 不買」或\n「魯夫 索隆 娜美」或\n「珍珠蜂蜜鮮奶普洱 珍珠伯爵紅茶拿鐵 黑糖波霸厚鮮奶 百香雙響炮」\n每個選項請以空格分開\n\n其他服務，請輸入「0」'
+const a2 = '請輸入你的選項，例如：\n「買 不買」或\n「珍珠蜂蜜鮮奶普洱 珍珠伯爵紅茶拿鐵 黑糖波霸厚鮮奶 百香雙響炮」\n每個選項請以空格分開\n\n其他服務，請輸入「0」'
 const b2 = '別再換了，你還是自己決定吧!'
-const c2 = '你是哪裡有問題，一個選項有什麼選擇困難'
+const c2 = '重新輸入你的選項，例如：「漢堡 薯條 炸雞」，每個選項請以空格分開\n\n其他服務，請輸入「0」'
+const d2 = '你是哪裡有問題？一個選項有什麼選擇困難'
+const e2 = '請輸入你的選項，例如「魯夫 索隆 娜美」，每個選項請以空格分開\n\n其他服務，請輸入「0」'
+const f2 = '換一個請輸入「換」\n或重新輸入你的選項，例如：「漢堡 薯條 炸雞」，每個選項請以空格分開\n\n其他服務，請輸入「0」'
 const a3 = '請輸入要查詢的年月份，例如要查詢民國109年1月的兌獎號碼，請輸入「10901」'
 let option = 0
 let check = false
@@ -179,7 +182,6 @@ bot.on('message', async (event) => {
             const ar = event.message.text.split(' ')
             let atc = ar[rand(ar.length - 1)]
             while (saveChoose === atc || atc === '') {
-              console.log('while')
               atc = ar[rand(ar.length - 1)]
             }
             saveChoose = atc
@@ -195,7 +197,7 @@ bot.on('message', async (event) => {
               },
               {
                 type: 'text',
-                text: '換一個請輸入「換」\n或重新輸入選項'
+                text: f2
               }
             ])
           } else {
@@ -209,6 +211,10 @@ bot.on('message', async (event) => {
                 {
                   type: 'text',
                   text: b2
+                },
+                {
+                  type: 'text',
+                  text: c2
                 }
               ])
             } else {
@@ -242,7 +248,7 @@ bot.on('message', async (event) => {
               },
               {
                 type: 'text',
-                text: '換一個請輸入「換」\n或重新輸入選項'
+                text: f2
               }
             ])
           } else {
@@ -254,7 +260,11 @@ bot.on('message', async (event) => {
               },
               {
                 type: 'text',
-                text: c2
+                text: d2
+              },
+              {
+                type: 'text',
+                text: e2
               }
             ])
           }
