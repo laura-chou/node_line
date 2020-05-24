@@ -54,8 +54,11 @@ bot.on('message', async (event) => {
             // 找年份
             if (data[i].date.indexOf(year) !== -1) {
               if (data[i].holidayCategory === '補假') {
+                if (msg1.length > 1) {
+                  msg1 += '\n'
+                }
                 const myDate = new Date(Date.parse(data[i].date.replace(/-/g, '/')))
-                msg1 += data[i].date + ' ' + weekArr[myDate.getDay()] + '\n'
+                msg1 += data[i].date + ' ' + weekArr[myDate.getDay()]
               }
             }
           }
@@ -75,8 +78,11 @@ bot.on('message', async (event) => {
           for (let i = 0; i < data.length; i++) {
             if (data[i].date.indexOf(year) !== -1) {
               if (data[i].holidayCategory.indexOf('上班日') !== -1) {
+                if (msg2.length > 1) {
+                  msg2 += '\n'
+                }
                 const myDate = new Date(Date.parse(data[i].date.replace(/-/g, '/')))
-                msg2 += data[i].date + ' ' + weekArr[myDate.getDay()] + '\n'
+                msg2 += data[i].date + ' ' + weekArr[myDate.getDay()]
               }
             }
           }
@@ -96,8 +102,11 @@ bot.on('message', async (event) => {
           for (let i = 0; i < data.length; i++) {
             if (data[i].date.indexOf(year) !== -1) {
               if (data[i].holidayCategory.indexOf('調整') !== -1) {
+                if (msg3.length > 1) {
+                  msg3 += '\n'
+                }
                 const myDate = new Date(Date.parse(data[i].date.replace(/-/g, '/')))
-                msg3 += data[i].date + ' ' + weekArr[myDate.getDay()] + '\n'
+                msg3 += data[i].date + ' ' + weekArr[myDate.getDay()]
               }
             }
           }
@@ -170,8 +179,10 @@ bot.on('message', async (event) => {
             const ar = event.message.text.split(' ')
             let atc = ar[rand(ar.length - 1)]
             while (saveChoose === atc) {
+              console.log('while')
               atc = ar[rand(ar.length - 1)]
             }
+            saveChoose = atc
             event.reply([
               {
                 type: 'text',
