@@ -153,6 +153,10 @@ bot.on('message', async (event) => {
               {
                 type: 'text',
                 text: b1
+              },
+              {
+                type: 'text',
+                text: a1
               }
             ])
           } else {
