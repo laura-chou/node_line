@@ -1,17 +1,32 @@
-# 行政機關辦公日曆及發票兌獎查詢機器人 #
-### 這是一個多功能的機器人，她提供以下服務：
-1.  查詢補班、補假、調整放假和節日的日期
-2.  查詢發票兌獎號碼
-3.  有選擇困難嗎?她可以幫你選 
-### 依照指示輸入數字即可開始查詢
+# 電影查詢機器人 #
+## 可以透過輸入以下條件查詢電影 ( 中英文皆可 ) ：
+### 1. 電影名稱
+### 2. 電影明星
+### 3. 電影導演 
+## 也可以查詢電影排行榜，分別是：
+### 1. 台北票房榜
+### 2. 全美票房榜
+### 3. 預告片榜
 ---
-![Alt text](line.png)
-### 點我
-<a href="https://lin.ee/19sd1JCmM"><img src="https://scdn.line-apps.com/n/line_add_friends/btn/zh-Hant.png" alt="加入好友" height="36" border="0"></a>
+### 以「電影名稱」查詢：
+<img src="img1.png" width = "70%" alt="電影名稱查詢實例圖片"/>
+
+---
+
+### 以「電影明星」查詢：
+<img src="img2.png" width = "50%" alt="電影名稱查詢實例圖片"/>
+
+---
+
+### 以「電影導演」查詢：
+<img src="img3.png" width = "50%" alt="電影導演查詢實例圖片"/>
+
+---
+
+## 點擊加入好友 ↓
+<a href="https://lin.ee/19sd1JCmM"><img src="https://scdn.line-apps.com/n/line_add_friends/btn/zh-Hant.png" alt="加入好友" width=30% border="0"></a>
 ---
 
 # 使用的api
-### 政府行政機關辦公日曆表
-https://data.gov.tw/dataset/26557
-### 財政部稅務入口網
-https://www.etax.nat.gov.tw/etw-main/web/ETW183W2_10903/
+### Yahoo 奇摩電影
+https://movies.yahoo.com.tw/

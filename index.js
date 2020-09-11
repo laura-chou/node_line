@@ -14,340 +14,578 @@ const bot = linebot({
   channelSecret: process.env.CHANNEL_SECRET,
   channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN
 })
-/*
-  0 其他服務
-  1 查詢行政機關辦公日曆
-  2 查詢發票兌獎號碼
-  3 選擇困難
-*/
-const choose = '查詢行政機關辦公日曆，請輸入「1」\n查詢發票兌獎號碼，請輸入「2」\n選擇困難，請輸入「3」'
-const a1 = '查詢節日，請輸入「節日關鍵字」，例如：端午、春節\n查詢補假日，請輸入「補假日」\n查詢調整放假日，請輸入「調整日」\n查詢補上班日，請輸入「補班日」\n其他服務，請輸入「0」'
-const b1 = '很抱歉，「政府行政機關辦公日曆表」查無此資料\nP.s.我知道很爛，去怪政府吧'
-const a2 = '請輸入你的選項，例如：\n「買 不買」或\n「珍珠蜂蜜鮮奶普洱 珍珠伯爵紅茶拿鐵 黑糖波霸厚鮮奶 百香雙響炮」\n每個選項請以空格分開\n\n其他服務，請輸入「0」'
-const b2 = '別再換了，你還是自己決定吧!'
-const c2 = '重新輸入你的選項，例如：「漢堡 薯條 炸雞」，每個選項請以空格分開\n\n其他服務，請輸入「0」'
-const d2 = '你是哪裡有問題？一個選項有什麼選擇困難'
-const e2 = '請輸入你的選項，例如「魯夫 索隆 娜美」，每個選項請以空格分開\n\n其他服務，請輸入「0」'
-const f2 = '換一個請輸入「換」\n或重新輸入你的選項，例如：「漢堡 薯條 炸雞」，每個選項請以空格分開\n\n其他服務，請輸入「0」'
-const a3 = '請輸入要查詢的年月份，例如要查詢民國109年1月的兌獎號碼，請輸入「10901」'
-let option = 0
-let check = false
-let reset = true
-let saveItems = ''
-let saveChoose = ''
-let count = 1
+
 // 當收到訊息時
 bot.on('message', async (event) => {
-  if ((event.message.text === '1' || event.message.text === '2' || event.message.text === '3') && reset) {
-    option = parseInt(event.message.text)
-    reset = false
-  }
+  const movieInfo = []
+  let $ = ''
+  let movie = ''
   try {
-    if (option === 1) {
-      if (!check) {
-        event.reply(a1)
-        check = true
-      } else {
-        const data = await rp({ url: 'https://quality.data.gov.tw/dq_download_json.php?nid=26557&md5_url=35ddfd1dc97973d29f24aee56753995f', json: true })
-        const year = new Date().getFullYear()
-        const weekArr = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
-        if (event.message.text === '補假日') {
-          let msg1 = ''
-          for (let i = 0; i < data.length; i++) {
-            // 找年份
-            if (data[i].date.indexOf(year) !== -1) {
-              if (data[i].holidayCategory === '補假') {
-                if (msg1.length > 1) {
-                  msg1 += '\n'
-                }
-                const myDate = new Date(Date.parse(data[i].date.replace(/-/g, '/')))
-                msg1 += data[i].date + ' ' + weekArr[myDate.getDay()]
-              }
-            }
-          }
-          event.reply([
-            {
-              type: 'sticker',
-              packageId: '11537',
-              stickerId: '52002734'
-            },
-            {
-              type: 'text',
-              text: msg1
-            }
-          ])
-        } else if (event.message.text === '補班日') {
-          let msg2 = ''
-          for (let i = 0; i < data.length; i++) {
-            if (data[i].date.indexOf(year) !== -1) {
-              if (data[i].holidayCategory.indexOf('上班日') !== -1) {
-                if (msg2.length > 1) {
-                  msg2 += '\n'
-                }
-                const myDate = new Date(Date.parse(data[i].date.replace(/-/g, '/')))
-                msg2 += data[i].date + ' ' + weekArr[myDate.getDay()]
-              }
-            }
-          }
-          event.reply([
-            {
-              type: 'sticker',
-              packageId: '11537',
-              stickerId: '52002751'
-            },
-            {
-              type: 'text',
-              text: msg2
-            }
-          ])
-        } else if (event.message.text === '調整日') {
-          let msg3 = ''
-          for (let i = 0; i < data.length; i++) {
-            if (data[i].date.indexOf(year) !== -1) {
-              if (data[i].holidayCategory.indexOf('調整') !== -1) {
-                if (msg3.length > 1) {
-                  msg3 += '\n'
-                }
-                const myDate = new Date(Date.parse(data[i].date.replace(/-/g, '/')))
-                msg3 += data[i].date + ' ' + weekArr[myDate.getDay()]
-              }
-            }
-          }
-          event.reply([
-            {
-              type: 'sticker',
-              packageId: '11538',
-              stickerId: '51626532'
-            },
-            {
-              type: 'text',
-              text: msg3
-            }
-          ])
-        } else if (event.message.text === '0') {
-          check = false
-          reset = true
-          option = 0
-          event.reply(choose)
+    if (event.message.text === '台北票房榜' || event.message.text === '全美票房榜' || event.message.text === '預告片榜') {
+      const topTrailer = await rp('https://movies.yahoo.com.tw/index.html')
+      $ = cheerio.load(topTrailer)
+      let info = ''
+      let img = ''
+      let chName = ''
+      let enName = ''
+      for (let i = 0; i < 5; i++) {
+        if (event.message.text === '台北票房榜') {
+          info = $('#list1 .ranking_list_r').find('a').eq(i).attr('href')
+          const web = await rp($('#list1 .ranking_list_r').find('a').eq(i).attr('href'))
+          $ = cheerio.load(web)
+        } else if (event.message.text === '全美票房榜') {
+          info = $('#list2 .ranking_list_r').find('a').eq(i).attr('href')
+          const web = await rp($('#list2 .ranking_list_r').find('a').eq(i).attr('href'))
+          $ = cheerio.load(web)
         } else {
-          let msg4 = ''
-          for (let i = 0; i < data.length; i++) {
-            if (data[i].date.indexOf(year) !== -1) {
-              // 找節日
-              if (event.message.text.indexOf('元') !== -1 || event.message.text.indexOf('旦') !== -1) {
-                event.message.text = '中華民國開國紀念日'
-              }
-              if (data[i].name.indexOf(event.message.text) !== -1) {
-                const myDate = new Date(Date.parse(data[i].date.replace(/-/g, '/')))
-                msg4 = (data[i].name + '\n' + '日期：' + data[i].date + '  ' + weekArr[myDate.getDay()] + '\n' + data[i].description + '\n' + '是否放假：' + data[i].isHoliday)
-              }
-            }
-          }
-          if (msg4 === '') {
-            event.reply([
+          info = $('#list3 .ranking_list_r').find('a').eq(i).attr('href')
+          const web = await rp($('#list3 .ranking_list_r').find('a').eq(i).attr('href'))
+          $ = cheerio.load(web)
+        }
+        img = $('.movie_intro_foto img').attr('src')
+        chName = $('.movie_intro_info_r').find('h1').text()
+        enName = $('.movie_intro_info_r').find('h3').text()
+        if (chName === '') {
+          chName = ' '
+        }
+        if (enName === '') {
+          enName = ' '
+        }
+        // 排行榜的訊息樣式
+        movie = {
+          type: 'bubble',
+          body: {
+            type: 'box',
+            layout: 'vertical',
+            contents: [
               {
-                type: 'sticker',
-                packageId: '11538',
-                stickerId: '51626525'
+                type: 'image',
+                url: img,
+                size: 'full',
+                aspectMode: 'cover',
+                aspectRatio: '2:3',
+                gravity: 'top'
               },
               {
-                type: 'text',
-                text: b1
+                type: 'box',
+                layout: 'vertical',
+                contents: [
+                  {
+                    type: 'box',
+                    layout: 'vertical',
+                    contents: [
+                      {
+                        type: 'text',
+                        text: chName,
+                        size: 'xl',
+                        color: '#ffffff',
+                        weight: 'bold',
+                        align: 'center'
+                      }
+                    ]
+                  },
+                  {
+                    type: 'box',
+                    layout: 'baseline',
+                    contents: [
+                      {
+                        type: 'text',
+                        text: enName,
+                        color: '#ebebeb',
+                        size: 'sm',
+                        align: 'center'
+                      }
+                    ],
+                    spacing: 'lg'
+                  },
+                  {
+                    type: 'box',
+                    layout: 'vertical',
+                    contents: [
+                      {
+                        type: 'filler'
+                      },
+                      {
+                        type: 'box',
+                        layout: 'baseline',
+                        contents: [
+                          {
+                            type: 'filler'
+                          },
+                          {
+                            type: 'text',
+                            text: '更多資訊',
+                            color: '#ffffff',
+                            flex: 0,
+                            offsetTop: '-2px'
+                          },
+                          {
+                            type: 'filler'
+                          }
+                        ],
+                        spacing: 'sm'
+                      },
+                      {
+                        type: 'filler'
+                      }
+                    ],
+                    borderWidth: '1px',
+                    cornerRadius: '4px',
+                    spacing: 'sm',
+                    borderColor: '#ffffff',
+                    margin: 'xxl',
+                    height: '40px',
+                    action: {
+                      type: 'uri',
+                      label: 'WEBSITE',
+                      uri: info
+                    }
+                  }
+                ],
+                position: 'absolute',
+                offsetBottom: '0px',
+                offsetStart: '0px',
+                offsetEnd: '0px',
+                backgroundColor: '#03303AB3',
+                paddingAll: '15px',
+                paddingTop: '18px'
               },
               {
-                type: 'text',
-                text: a1
+                type: 'box',
+                layout: 'vertical',
+                contents: [
+                  {
+                    type: 'text',
+                    text: `${i + 1}`,
+                    color: '#ffffff',
+                    size: 'xxl',
+                    offsetTop: '3px',
+                    align: 'center'
+                  }
+                ],
+                position: 'absolute',
+                cornerRadius: '50px',
+                offsetTop: '18px',
+                backgroundColor: '#FF0000',
+                offsetStart: '18px',
+                height: '40px',
+                width: '40px'
               }
-            ])
-          } else {
-            event.reply([
-              {
-                type: 'sticker',
-                packageId: '11537',
-                stickerId: '52002748'
-              },
-              {
-                type: 'text',
-                text: msg4
-              }
-            ])
+            ],
+            paddingAll: '0px'
           }
         }
-      }
-    } else if (option === 3) {
-      if (!check) {
-        event.reply(a2)
-        check = true
-      } else {
-        if (event.message.text === '換') {
-          if (saveItems !== '' && count !== 3) {
-            count++
-            event.message.text = saveItems
-            const ar = event.message.text.split(' ')
-            let atc = ar[rand(ar.length - 1)]
-            while (saveChoose === atc || atc === '') {
-              atc = ar[rand(ar.length - 1)]
-            }
-            saveChoose = atc
-            event.reply([
-              {
-                type: 'text',
-                text: `選${atc}吧!`
-              },
-              {
-                type: 'sticker',
-                packageId: '11538',
-                stickerId: '51626501'
-              },
-              {
-                type: 'text',
-                text: f2
-              }
-            ])
-          } else {
-            if (count === 3) {
-              event.reply([
-                {
-                  type: 'sticker',
-                  packageId: '11537',
-                  stickerId: '52002767'
-                },
-                {
-                  type: 'text',
-                  text: b2
-                },
-                {
-                  type: 'text',
-                  text: c2
-                }
-              ])
-            } else {
-              event.reply(a2)
-            }
-          }
-        } else if (event.message.text === '0') {
-          check = false
-          reset = true
-          option = 0
-          event.reply(choose)
-        } else {
-          const arr = event.message.text.split(' ')
-          if (arr.length > 1) {
-            saveItems = event.message.text
-            count = 1
-            let autoChoose = arr[rand(arr.length - 1)]
-            while (autoChoose === '') {
-              autoChoose = arr[rand(arr.length - 1)]
-            }
-            saveChoose = autoChoose
-            event.reply([
-              {
-                type: 'text',
-                text: `選${autoChoose}吧!`
-              },
-              {
-                type: 'sticker',
-                packageId: '11538',
-                stickerId: '51626501'
-              },
-              {
-                type: 'text',
-                text: f2
-              }
-            ])
-          } else {
-            event.reply([
-              {
-                type: 'sticker',
-                packageId: '11537',
-                stickerId: '52002754'
-              },
-              {
-                type: 'text',
-                text: d2
-              },
-              {
-                type: 'text',
-                text: e2
-              }
-            ])
-          }
-        }
-      }
-    } else if (option === 2) {
-      if (!check) {
-        event.reply(a3)
-        check = true
-      } else {
-        if (event.message.text !== '0') {
-          try {
-            if (parseInt(event.message.text) % 2 === 0) {
-              event.message.text = parseInt(event.message.text) - 1
-            }
-            const receipt = await rp(`https://www.etax.nat.gov.tw/etw-main/web/ETW183W2_${event.message.text}/`)
-            const $ = cheerio.load(receipt)
-            const arr = $('#tablet01').find('td').eq(5).text().trim(' ').split(' ')
-            let nb = ''
-            for (let i = 0; i < arr.length; i++) {
-              nb += arr[i]
-              if (i !== arr.length - 1) {
-                nb += '\n'
-              }
-            }
-            event.reply([
-              {
-                type: 'text',
-                text: $('#tablet01').find('td').eq(0).text().replace('~', '～') +
-                          '\n特別獎：\n' + $('#tablet01').find('td').eq(1).text().trim() +
-                          '\n特獎：\n' + $('#tablet01').find('td').eq(3).text().trim() +
-                          '\n頭獎：\n' + nb +
-                          '\n增開六獎：' + $('#tablet01').find('td').eq(12).text()
-              },
-              {
-                type: 'text',
-                text: '特別獎：\n' + $('#tablet01').find('td').eq(2).text() +
-                '\n\n特獎：\n' + $('#tablet01').find('td').eq(4).text() +
-                '\n\n頭獎：\n' + $('#tablet01').find('td').eq(6).text() +
-                '\n\n二獎：\n' + $('#tablet01').find('td').eq(7).text() +
-                '\n\n三獎：\n' + $('#tablet01').find('td').eq(8).text() +
-                '\n\n四獎：\n' + $('#tablet01').find('td').eq(9).text() +
-                '\n\n五獎：\n' + $('#tablet01').find('td').eq(10).text() +
-                '\n\n六獎：\n' + $('#tablet01').find('td').eq(11).text() +
-                '\n\n其他服務，請輸入「0」'
-              }
-            ])
-          } catch (error) {
-            event.reply([
-              {
-                type: 'sticker',
-                packageId: '11538',
-                stickerId: '51626526'
-              },
-              {
-                type: 'text',
-                text: '尚未開獎'
-              }
-            ])
-          }
-        } else {
-          check = false
-          reset = true
-          option = 0
-          event.reply(choose)
-        }
+        movieInfo.push(movie)
       }
     } else {
-      event.reply(choose)
+      const movies = await rp(`https://movies.yahoo.com.tw/moviesearch_result.html?keyword=${encodeURI(event.message.text)}`)
+      $ = cheerio.load(movies)
+      if ($('.release_foto .foto img').length > 0) {
+        for (let i = 0; i < $('.release_foto .foto img').length; i++) {
+          const img = $('.release_foto .foto img').eq(i).attr('src')
+          let chName = $('.release_movie_name').eq(i).children().eq(0).text()
+          let enName = $('.release_movie_name').eq(i).children().eq(1).text()
+          if (chName === '') {
+            chName = ' '
+          }
+          if (enName === '') {
+            enName = ' '
+          }
+          const release = $('.release_movie_name').eq(i).children().eq(2).text().replace('上映日期 : ', '')
+          const director = $('.searchpage_info').eq(i).find('.search_text').eq(0).text().trim()
+          const actors = $('.searchpage_info').eq(i).find('.search_text').eq(1).text().split('、')
+          const info = $('.release_movie_name').eq(i).find('a').attr('href')
+          for (let j = 0; j < actors.length; j++) {
+            actors[j] = actors[j].trim()
+          }
+          if (actors[0] === '') {
+            actors[0] = '無'
+          }
+
+          // 電影的訊息樣式
+          movie = {
+            type: 'bubble',
+            body: {
+              type: 'box',
+              layout: 'vertical',
+              contents: [
+                {
+                  type: 'image',
+                  url: img,
+                  size: 'full',
+                  aspectMode: 'cover',
+                  aspectRatio: '2:3',
+                  gravity: 'top'
+                },
+                {
+                  type: 'box',
+                  layout: 'vertical',
+                  contents: [
+                    {
+                      type: 'box',
+                      layout: 'vertical',
+                      contents: [
+                        {
+                          type: 'text',
+                          text: chName,
+                          size: 'xl',
+                          color: '#ffffff',
+                          weight: 'bold',
+                          align: 'center'
+                        }
+                      ],
+                      height: '10%'
+                    },
+                    {
+                      type: 'box',
+                      layout: 'baseline',
+                      contents: [
+                        {
+                          type: 'text',
+                          text: enName,
+                          color: '#ebebeb',
+                          size: 'sm',
+                          align: 'center'
+                        }
+                      ],
+                      spacing: 'lg',
+                      height: '10%'
+                    },
+                    {
+                      type: 'box',
+                      layout: 'vertical',
+                      contents: [
+                        {
+                          type: 'box',
+                          layout: 'baseline',
+                          contents: [
+                            {
+                              type: 'text',
+                              text: '上映日',
+                              color: '#ffffff',
+                              flex: 3,
+                              align: 'center',
+                              size: 'md'
+                            },
+                            {
+                              type: 'text',
+                              text: release,
+                              color: '#ffffff',
+                              flex: 9,
+                              align: 'start',
+                              size: 'md'
+                            }
+                          ],
+                          spacing: 'md'
+                        },
+                        {
+                          type: 'box',
+                          layout: 'baseline',
+                          contents: [
+                            {
+                              type: 'text',
+                              text: '導演',
+                              color: '#ffffff',
+                              flex: 3,
+                              align: 'center',
+                              size: 'md'
+                            },
+                            {
+                              type: 'text',
+                              text: director,
+                              color: '#ffffff',
+                              flex: 9,
+                              align: 'start',
+                              size: 'md',
+                              wrap: false
+                            }
+                          ],
+                          spacing: 'sm'
+                        },
+                        {
+                          type: 'box',
+                          layout: 'baseline',
+                          contents: [
+                            {
+                              type: 'text',
+                              text: '演員',
+                              color: '#ffffff',
+                              flex: 3,
+                              align: 'center',
+                              size: 'md'
+                            },
+                            {
+                              type: 'text',
+                              text: actors.join('、'),
+                              color: '#ffffff',
+                              flex: 9,
+                              align: 'start',
+                              size: 'md',
+                              wrap: true
+                            }
+                          ],
+                          spacing: 'sm'
+                        }
+                      ],
+                      margin: 'md',
+                      spacing: 'lg',
+                      height: '62%'
+                    },
+                    {
+                      type: 'box',
+                      layout: 'vertical',
+                      contents: [
+                        {
+                          type: 'filler'
+                        },
+                        {
+                          type: 'box',
+                          layout: 'baseline',
+                          contents: [
+                            {
+                              type: 'filler'
+                            },
+                            {
+                              type: 'text',
+                              text: '更多資訊',
+                              color: '#ffffff',
+                              flex: 0,
+                              offsetTop: '-2px'
+                            },
+                            {
+                              type: 'filler'
+                            }
+                          ],
+                          spacing: 'sm'
+                        },
+                        {
+                          type: 'filler'
+                        }
+                      ],
+                      borderWidth: '1px',
+                      cornerRadius: '4px',
+                      spacing: 'sm',
+                      borderColor: '#ffffff',
+                      margin: 'xxl',
+                      height: '40px',
+                      action: {
+                        type: 'uri',
+                        label: 'WEBSITE',
+                        uri: info
+                      }
+                    }
+                  ],
+                  position: 'absolute',
+                  offsetBottom: '0px',
+                  offsetStart: '0px',
+                  offsetEnd: '0px',
+                  backgroundColor: '#03303AB3',
+                  height: '100%',
+                  paddingAll: '15px',
+                  paddingTop: '18px'
+                }
+              ],
+              paddingAll: '0px'
+            }
+          }
+          movieInfo.push(movie)
+        }
+      } else {
+        // 查無資料的訊息樣式
+        movie = {
+          type: 'bubble',
+          hero: {
+            type: 'image',
+            url: 'https://cdn.pixabay.com/photo/2018/12/31/17/06/sorry-3905517_1280.png',
+            size: 'full',
+            aspectRatio: '20:13',
+            aspectMode: 'fit',
+            backgroundColor: '#006000'
+          },
+          body: {
+            type: 'box',
+            layout: 'vertical',
+            contents: [
+              {
+                type: 'text',
+                text: '查',
+                size: 'xxl',
+                align: 'center',
+                color: '#ffffff',
+                weight: 'bold',
+                margin: 'xl'
+              },
+              {
+                type: 'text',
+                text: '無',
+                size: 'xxl',
+                align: 'center',
+                color: '#ffffff',
+                weight: 'bold',
+                margin: 'xl'
+              },
+              {
+                type: 'text',
+                text: '資',
+                size: 'xxl',
+                align: 'center',
+                color: '#ffffff',
+                weight: 'bold',
+                margin: 'xl'
+              },
+              {
+                type: 'text',
+                text: '料',
+                size: 'xxl',
+                align: 'center',
+                color: '#ffffff',
+                weight: 'bold',
+                margin: 'xl'
+              }
+            ]
+          },
+          styles: {
+            body: {
+              backgroundColor: '#006000'
+            }
+          }
+        }
+        movieInfo.push(movie)
+      }
     }
+    // 電影排行榜的訊息樣式
+    const movieTrailer = {
+      type: 'bubble',
+      hero: {
+        type: 'image',
+        url: 'https://cdn.pixabay.com/photo/2017/12/06/07/42/cinema-3001163_1280.jpg',
+        size: 'full',
+        aspectRatio: '20:13',
+        aspectMode: 'cover'
+      },
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        contents: [
+          {
+            type: 'text',
+            text: '電影排行榜',
+            weight: 'bold',
+            size: 'xl',
+            align: 'center',
+            color: '#FFFFF4'
+          }
+        ]
+      },
+      footer: {
+        type: 'box',
+        layout: 'vertical',
+        spacing: 'sm',
+        contents: [
+          {
+            type: 'button',
+            style: 'link',
+            height: 'md',
+            action: {
+              type: 'message',
+              label: '台北票房榜',
+              text: '台北票房榜'
+            },
+            color: '#ffffff'
+          },
+          {
+            type: 'button',
+            style: 'link',
+            height: 'md',
+            action: {
+              type: 'message',
+              label: '全美票房榜',
+              text: '全美票房榜'
+            },
+            color: '#ffffff'
+          },
+          {
+            type: 'button',
+            style: 'link',
+            height: 'md',
+            action: {
+              type: 'message',
+              label: '預告片榜',
+              text: '預告片榜'
+            },
+            color: '#ffffff'
+          }
+        ],
+        flex: 0
+      },
+      styles: {
+        body: {
+          backgroundColor: '#000000'
+        },
+        footer: {
+          backgroundColor: '#000000'
+        }
+      }
+    }
+    movieInfo.push(movieTrailer)
+    event.reply({
+      type: 'flex',
+      altText: '查詢結果',
+      contents: {
+        type: 'carousel',
+        contents: movieInfo
+      }
+    })
   } catch (error) {
-    event.reply(option)
+    event.reply({
+      type: 'flex',
+      altText: '發生錯誤',
+      contents: {
+        type: 'carousel',
+        contents: [
+          {
+            type: 'bubble',
+            hero: {
+              type: 'image',
+              url: 'https://cdn.pixabay.com/photo/2018/01/16/10/36/mistake-3085712_1280.jpg',
+              size: 'full',
+              aspectRatio: '20:13',
+              aspectMode: 'cover'
+            },
+            body: {
+              type: 'box',
+              layout: 'vertical',
+              contents: [
+                {
+                  type: 'text',
+                  text: '404',
+                  weight: 'bold',
+                  size: '4xl',
+                  align: 'center',
+                  color: '#FCFCFC'
+                },
+                {
+                  type: 'text',
+                  text: 'Not Found',
+                  weight: 'bold',
+                  size: '4xl',
+                  align: 'center',
+                  color: '#FCFCFC'
+                }
+              ]
+            },
+            styles: {
+              body: {
+                backgroundColor: '#36ac96'
+              }
+            }
+          }
+        ]
+      }
+    })
   }
 })
 // 在 port 啟動
 bot.listen('/', process.env.PORT, () => {
   console.log('機器人已啟動')
 })
-// 隨機
-const rand = (max) => {
-  return Math.round(Math.random() * (max))
-}
