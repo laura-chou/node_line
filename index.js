@@ -14,7 +14,6 @@ const bot = linebot({
   channelSecret: process.env.CHANNEL_SECRET,
   channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN
 })
-
 // 當收到訊息時
 bot.on('message', async (event) => {
   const movieInfo = []
@@ -192,7 +191,10 @@ bot.on('message', async (event) => {
             enName = ' '
           }
           const release = $('.release_movie_name').eq(i).children().eq(2).text().replace('上映日期 : ', '')
-          const director = $('.searchpage_info').eq(i).find('.search_text').eq(0).text().trim()
+          let director = $('.searchpage_info').eq(i).find('.search_text').eq(0).text().trim()
+          if (director === '') {
+            director = '無'
+          }
           const actors = $('.searchpage_info').eq(i).find('.search_text').eq(1).text().split('、')
           const info = $('.release_movie_name').eq(i).find('a').attr('href')
           for (let j = 0; j < actors.length; j++) {
@@ -201,7 +203,6 @@ bot.on('message', async (event) => {
           if (actors[0] === '') {
             actors[0] = '無'
           }
-
           // 電影的訊息樣式
           movie = {
             type: 'bubble',
