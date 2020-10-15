@@ -23,27 +23,52 @@ bot.on('message', async (event) => {
     if (event.message.text === '台北票房榜' || event.message.text === '全美票房榜' || event.message.text === '預告片榜') {
       const topTrailer = await rp('https://movies.yahoo.com.tw/index.html')
       $ = cheerio.load(topTrailer)
+      // 全美票房榜
+      const movieLink = []
+      const movieLinkLength = $('#list2 .ranking_list_r').find('a').length
+      for (let i = 0; i < movieLinkLength; i++) {
+        const movie = $('#list2 .ranking_list_r').find('a').eq(i).attr('data-ga').split(',')
+        movieLink.push(movie[2].replace("'", '').replace("']", ''))
+      }
+      let infotitle = '更多資訊'
       let info = ''
       let img = ''
       let chName = ''
       let enName = ''
-      for (let i = 0; i < 5; i++) {
-        if (event.message.text === '台北票房榜') {
-          info = $('#list1 .ranking_list_r').find('a').eq(i).attr('href')
-          const web = await rp($('#list1 .ranking_list_r').find('a').eq(i).attr('href'))
-          $ = cheerio.load(web)
-        } else if (event.message.text === '全美票房榜') {
-          info = $('#list2 .ranking_list_r').find('a').eq(i).attr('href')
-          const web = await rp($('#list2 .ranking_list_r').find('a').eq(i).attr('href'))
-          $ = cheerio.load(web)
+      let usaMovie = ''
+      for (let i = 0; i < 10; i++) {
+        if (event.message.text === '全美票房榜') {
+          usaMovie = $('#list2 .ranking_list_r').find('li span').eq(i).text()
+          if (movieLink.includes(usaMovie)) {
+            const index = movieLink.indexOf(usaMovie)
+            infotitle = '更多資訊'
+            info = $('#list2 .ranking_list_r').find('a').eq(index).attr('href')
+            const web = await rp(info)
+            $ = cheerio.load(web)
+            img = $('.movie_intro_foto img').attr('src')
+            chName = $('.movie_intro_info_r').find('h1').text()
+            enName = $('.movie_intro_info_r').find('h3').text()
+          } else {
+            infotitle = '暫無資訊'
+            info = 'https://movies.yahoo.com.tw/'
+            img = 'https://cdn.pixabay.com/photo/2015/06/17/10/26/curtain-812227_1280.jpg'
+            chName = usaMovie
+            enName = '台灣目前未上映'
+          }
         } else {
-          info = $('#list3 .ranking_list_r').find('a').eq(i).attr('href')
-          const web = await rp($('#list3 .ranking_list_r').find('a').eq(i).attr('href'))
-          $ = cheerio.load(web)
+          if (event.message.text === '台北票房榜') {
+            info = $('#list1 .ranking_list_r').find('a').eq(i).attr('href')
+            const web = await rp(info)
+            $ = cheerio.load(web)
+          } else {
+            info = $('#list3 .ranking_list_r').find('a').eq(i).attr('href')
+            const web = await rp(info)
+            $ = cheerio.load(web)
+          }
+          img = $('.movie_intro_foto img').attr('src')
+          chName = $('.movie_intro_info_r').find('h1').text()
+          enName = $('.movie_intro_info_r').find('h3').text()
         }
-        img = $('.movie_intro_foto img').attr('src')
-        chName = $('.movie_intro_info_r').find('h1').text()
-        enName = $('.movie_intro_info_r').find('h3').text()
         if (chName === '') {
           chName = ' '
         }
@@ -113,7 +138,7 @@ bot.on('message', async (event) => {
                           },
                           {
                             type: 'text',
-                            text: '更多資訊',
+                            text: infotitle,
                             color: '#ffffff',
                             flex: 0,
                             offsetTop: '-2px'
