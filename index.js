@@ -18,218 +18,37 @@ const bot = linebot({
 bot.on('message', async (event) => {
   const movieInfo = []
   let $ = ''
-  let movie = ''
+  let movieStyle = ''
   try {
-    if (event.message.text === '台北票房榜' || event.message.text === '全美票房榜' || event.message.text === '預告片榜') {
-      const topTrailer = await rp('https://movies.yahoo.com.tw/index.html')
-      $ = cheerio.load(topTrailer)
-      // 全美票房榜
-      const movieLink = []
-      const movieLinkLength = $('#list2 .ranking_list_r').find('a').length
-      for (let i = 0; i < movieLinkLength; i++) {
-        const movie = $('#list2 .ranking_list_r').find('a').eq(i).attr('data-ga').split(',')
-        movieLink.push(movie[2].replace("'", '').replace("']", ''))
+    const defaultText = ['台北票房榜', '全美票房榜', '預告片榜']
+    if (defaultText.includes(event.message.text)) {
+      let useURL = ''
+      switch (event.message.text) {
+        case '台北票房榜':
+          useURL = await rp('https://movies.yahoo.com.tw/chart.html')
+          break
+        case '全美票房榜':
+          useURL = await rp('https://movies.yahoo.com.tw/chart.html?cate=us')
+          break
+        case '預告片榜':
+          useURL = await rp('https://movies.yahoo.com.tw/chart.html?cate=trailer')
+          break
       }
-      let infotitle = '更多資訊'
-      let info = ''
-      let img = ''
+      let infoUrl = ''
+      let image = ''
       let chName = ''
       let enName = ''
-      let usaMovie = ''
-      for (let i = 0; i < 10; i++) {
-        if (event.message.text === '全美票房榜') {
-          usaMovie = $('#list2 .ranking_list_r').find('li span').eq(i).text()
-          if (movieLink.includes(usaMovie)) {
-            const index = movieLink.indexOf(usaMovie)
-            infotitle = '更多資訊'
-            info = $('#list2 .ranking_list_r').find('a').eq(index).attr('href')
-            const web = await rp(info)
-            $ = cheerio.load(web)
-            img = $('.movie_intro_foto img').attr('src')
-            chName = $('.movie_intro_info_r').find('h1').text()
-            enName = $('.movie_intro_info_r').find('h3').text()
-          } else {
-            infotitle = '暫無資訊'
-            info = 'https://movies.yahoo.com.tw/'
-            img = 'https://cdn.pixabay.com/photo/2015/06/17/10/26/curtain-812227_1280.jpg'
-            chName = usaMovie
-            enName = '台灣目前未上映'
-          }
-        } else {
-          if (event.message.text === '台北票房榜') {
-            info = $('#list1 .ranking_list_r').find('a').eq(i).attr('href')
-            const web = await rp(info)
-            $ = cheerio.load(web)
-          } else {
-            info = $('#list3 .ranking_list_r').find('a').eq(i).attr('href')
-            const web = await rp(info)
-            $ = cheerio.load(web)
-          }
-          img = $('.movie_intro_foto img').attr('src')
+      for (let i = 1; i < 11; i++) {
+        $ = cheerio.load(useURL)
+        infoUrl = $('.rank_list').find('.tr').eq(i).find('a').attr('href')
+        if (infoUrl !== undefined) {
+          const infoWeb = await rp(infoUrl)
+          $ = cheerio.load(infoWeb)
+          image = $('.movie_intro_foto img').attr('src')
           chName = $('.movie_intro_info_r').find('h1').text()
           enName = $('.movie_intro_info_r').find('h3').text()
-        }
-        if (chName === '') {
-          chName = ' '
-        }
-        if (enName === '') {
-          enName = ' '
-        }
-        // 排行榜的訊息樣式
-        movie = {
-          type: 'bubble',
-          body: {
-            type: 'box',
-            layout: 'vertical',
-            contents: [
-              {
-                type: 'image',
-                url: img,
-                size: 'full',
-                aspectMode: 'cover',
-                aspectRatio: '2:3',
-                gravity: 'top'
-              },
-              {
-                type: 'box',
-                layout: 'vertical',
-                contents: [
-                  {
-                    type: 'box',
-                    layout: 'vertical',
-                    contents: [
-                      {
-                        type: 'text',
-                        text: chName,
-                        size: 'xl',
-                        color: '#ffffff',
-                        weight: 'bold',
-                        align: 'center'
-                      }
-                    ]
-                  },
-                  {
-                    type: 'box',
-                    layout: 'baseline',
-                    contents: [
-                      {
-                        type: 'text',
-                        text: enName,
-                        color: '#ebebeb',
-                        size: 'sm',
-                        align: 'center'
-                      }
-                    ],
-                    spacing: 'lg'
-                  },
-                  {
-                    type: 'box',
-                    layout: 'vertical',
-                    contents: [
-                      {
-                        type: 'filler'
-                      },
-                      {
-                        type: 'box',
-                        layout: 'baseline',
-                        contents: [
-                          {
-                            type: 'filler'
-                          },
-                          {
-                            type: 'text',
-                            text: infotitle,
-                            color: '#ffffff',
-                            flex: 0,
-                            offsetTop: '-2px'
-                          },
-                          {
-                            type: 'filler'
-                          }
-                        ],
-                        spacing: 'sm'
-                      },
-                      {
-                        type: 'filler'
-                      }
-                    ],
-                    borderWidth: '1px',
-                    cornerRadius: '4px',
-                    spacing: 'sm',
-                    borderColor: '#ffffff',
-                    margin: 'xxl',
-                    height: '40px',
-                    action: {
-                      type: 'uri',
-                      label: 'WEBSITE',
-                      uri: info
-                    }
-                  }
-                ],
-                position: 'absolute',
-                offsetBottom: '0px',
-                offsetStart: '0px',
-                offsetEnd: '0px',
-                backgroundColor: '#03303AB3',
-                paddingAll: '15px',
-                paddingTop: '18px'
-              },
-              {
-                type: 'box',
-                layout: 'vertical',
-                contents: [
-                  {
-                    type: 'text',
-                    text: `${i + 1}`,
-                    color: '#ffffff',
-                    size: 'xxl',
-                    offsetTop: '3px',
-                    align: 'center'
-                  }
-                ],
-                position: 'absolute',
-                cornerRadius: '50px',
-                offsetTop: '18px',
-                backgroundColor: '#FF0000',
-                offsetStart: '18px',
-                height: '40px',
-                width: '40px'
-              }
-            ],
-            paddingAll: '0px'
-          }
-        }
-        movieInfo.push(movie)
-      }
-    } else {
-      const movies = await rp(`https://movies.yahoo.com.tw/moviesearch_result.html?keyword=${encodeURI(event.message.text)}`)
-      $ = cheerio.load(movies)
-      if ($('.release_foto .foto img').length > 0) {
-        for (let i = 0; i < $('.release_foto .foto img').length; i++) {
-          const img = $('.release_foto .foto img').eq(i).attr('src')
-          let chName = $('.release_movie_name').eq(i).children().eq(0).text()
-          let enName = $('.release_movie_name').eq(i).children().eq(1).text()
-          if (chName === '') {
-            chName = ' '
-          }
-          if (enName === '') {
-            enName = ' '
-          }
-          const release = $('.release_movie_name').eq(i).children().eq(2).text().replace('上映日期 : ', '')
-          let director = $('.searchpage_info').eq(i).find('.search_text').eq(0).text().trim()
-          if (director === '') {
-            director = '無'
-          }
-          const actors = $('.searchpage_info').eq(i).find('.search_text').eq(1).text().split('、')
-          const info = $('.release_movie_name').eq(i).find('a').attr('href')
-          for (let j = 0; j < actors.length; j++) {
-            actors[j] = actors[j].trim()
-          }
-          if (actors[0] === '') {
-            actors[0] = '無'
-          }
-          // 電影的訊息樣式
-          movie = {
+          // 排行榜訊息樣式
+          movieStyle = {
             type: 'bubble',
             body: {
               type: 'box',
@@ -237,7 +56,239 @@ bot.on('message', async (event) => {
               contents: [
                 {
                   type: 'image',
-                  url: img,
+                  url: image,
+                  size: 'full',
+                  aspectMode: 'cover',
+                  aspectRatio: '2:3',
+                  gravity: 'top'
+                },
+                {
+                  type: 'box',
+                  layout: 'vertical',
+                  contents: [
+                    {
+                      type: 'box',
+                      layout: 'vertical',
+                      contents: [
+                        {
+                          type: 'text',
+                          text: chName,
+                          size: 'xl',
+                          color: '#ffffff',
+                          weight: 'bold',
+                          align: 'center'
+                        }
+                      ]
+                    },
+                    {
+                      type: 'box',
+                      layout: 'baseline',
+                      contents: [
+                        {
+                          type: 'text',
+                          text: enName,
+                          color: '#ebebeb',
+                          size: 'sm',
+                          align: 'center'
+                        }
+                      ],
+                      spacing: 'lg'
+                    },
+                    {
+                      type: 'box',
+                      layout: 'vertical',
+                      contents: [
+                        {
+                          type: 'filler'
+                        },
+                        {
+                          type: 'box',
+                          layout: 'baseline',
+                          contents: [
+                            {
+                              type: 'filler'
+                            },
+                            {
+                              type: 'text',
+                              text: '更多資訊',
+                              color: '#ffffff',
+                              flex: 0,
+                              offsetTop: '-2px'
+                            },
+                            {
+                              type: 'filler'
+                            }
+                          ],
+                          spacing: 'sm'
+                        },
+                        {
+                          type: 'filler'
+                        }
+                      ],
+                      borderWidth: '1px',
+                      cornerRadius: '4px',
+                      spacing: 'sm',
+                      borderColor: '#ffffff',
+                      margin: 'xxl',
+                      height: '40px',
+                      action: {
+                        type: 'uri',
+                        label: 'WEBSITE',
+                        uri: infoUrl
+                      }
+                    }
+                  ],
+                  position: 'absolute',
+                  offsetBottom: '0px',
+                  offsetStart: '0px',
+                  offsetEnd: '0px',
+                  backgroundColor: '#03303AB3',
+                  paddingAll: '15px',
+                  paddingTop: '18px'
+                },
+                {
+                  type: 'box',
+                  layout: 'vertical',
+                  contents: [
+                    {
+                      type: 'text',
+                      text: `${i}`,
+                      color: '#ffffff',
+                      size: 'xxl',
+                      offsetTop: '3px',
+                      align: 'center'
+                    }
+                  ],
+                  position: 'absolute',
+                  cornerRadius: '50px',
+                  offsetTop: '18px',
+                  backgroundColor: '#FF0000',
+                  offsetStart: '18px',
+                  height: '40px',
+                  width: '40px'
+                }
+              ],
+              paddingAll: '0px'
+            }
+          }
+        } else {
+          image = 'https://res.cloudinary.com/dxrxiuei6/image/upload/v1658325828/LineRobot/unknow_movie_arw6x1.jpg'
+          chName = $('.rank_list').find('.tr').eq(i).find('.rank_txt').text()
+          enName = '台灣目前未上映'
+          // 排行榜訊息樣式
+          movieStyle = {
+            type: 'bubble',
+            body: {
+              type: 'box',
+              layout: 'vertical',
+              contents: [
+                {
+                  type: 'image',
+                  url: image,
+                  size: 'full',
+                  aspectMode: 'cover',
+                  aspectRatio: '2:3',
+                  gravity: 'top'
+                },
+                {
+                  type: 'box',
+                  layout: 'vertical',
+                  contents: [
+                    {
+                      type: 'box',
+                      layout: 'vertical',
+                      contents: [
+                        {
+                          type: 'text',
+                          text: chName,
+                          size: 'xl',
+                          color: '#ffffff',
+                          weight: 'bold',
+                          align: 'center'
+                        }
+                      ]
+                    },
+                    {
+                      type: 'box',
+                      layout: 'baseline',
+                      contents: [
+                        {
+                          type: 'text',
+                          text: enName,
+                          color: '#ebebeb',
+                          size: 'sm',
+                          align: 'center'
+                        }
+                      ],
+                      spacing: 'lg'
+                    }
+                  ],
+                  position: 'absolute',
+                  offsetBottom: '0px',
+                  offsetStart: '0px',
+                  offsetEnd: '0px',
+                  backgroundColor: '#03303AB3',
+                  paddingAll: '15px',
+                  paddingTop: '18px'
+                },
+                {
+                  type: 'box',
+                  layout: 'vertical',
+                  contents: [
+                    {
+                      type: 'text',
+                      text: `${i}`,
+                      color: '#ffffff',
+                      size: 'xxl',
+                      offsetTop: '3px',
+                      align: 'center'
+                    }
+                  ],
+                  position: 'absolute',
+                  cornerRadius: '50px',
+                  offsetTop: '18px',
+                  backgroundColor: '#FF0000',
+                  offsetStart: '18px',
+                  height: '40px',
+                  width: '40px'
+                }
+              ],
+              paddingAll: '0px'
+            }
+          }
+        }
+        movieInfo.push(movieStyle)
+      }
+    } else {
+      const movies = await rp(`https://movies.yahoo.com.tw/moviesearch_result.html?keyword=${encodeURI(event.message.text)}`)
+      $ = cheerio.load(movies)
+      const releaseList = $('.release_foto .foto img').length
+      if (releaseList > 0) {
+        for (let i = 0; i < releaseList; i++) {
+          const image = $('.release_foto .foto img').eq(i).attr('src')
+          let chName = $('.release_movie_name').eq(i).children().eq(0).text()
+          let enName = $('.release_movie_name').eq(i).children().eq(1).text()
+          if (chName === '') chName = ' '
+          if (enName === '') enName = ' '
+          const release = $('.release_movie_name').eq(i).children().eq(2).text().replace(' 上映日期  : ', '')
+          let director = $('.searchpage_info').eq(i).find('.search_text').eq(0).text().trim()
+          if (director === '') director = '無'
+          const actors = $('.searchpage_info').eq(i).find('.search_text').eq(1).text().split('、')
+          const info = $('.release_movie_name').eq(i).find('a').attr('href')
+          for (let j = 0; j < actors.length; j++) {
+            actors[j] = actors[j].trim()
+          }
+          if (actors[0] === '') actors[0] = '無'
+          // 電影的訊息樣式
+          movieStyle = {
+            type: 'bubble',
+            body: {
+              type: 'box',
+              layout: 'vertical',
+              contents: [
+                {
+                  type: 'image',
+                  url: image,
                   size: 'full',
                   aspectMode: 'cover',
                   aspectRatio: '2:3',
@@ -414,15 +465,15 @@ bot.on('message', async (event) => {
               paddingAll: '0px'
             }
           }
-          movieInfo.push(movie)
+          movieInfo.push(movieStyle)
         }
       } else {
         // 查無資料的訊息樣式
-        movie = {
+        movieStyle = {
           type: 'bubble',
           hero: {
             type: 'image',
-            url: 'https://cdn.pixabay.com/photo/2018/12/31/17/06/sorry-3905517_1280.png',
+            url: 'https://res.cloudinary.com/dxrxiuei6/image/upload/v1658407798/LineRobot/sorry_ntfd3o.png',
             size: 'full',
             aspectRatio: '20:13',
             aspectMode: 'fit',
@@ -476,7 +527,7 @@ bot.on('message', async (event) => {
             }
           }
         }
-        movieInfo.push(movie)
+        movieInfo.push(movieStyle)
       }
     }
     // 電影排行榜的訊息樣式
@@ -484,7 +535,7 @@ bot.on('message', async (event) => {
       type: 'bubble',
       hero: {
         type: 'image',
-        url: 'https://cdn.pixabay.com/photo/2017/12/06/07/42/cinema-3001163_1280.jpg',
+        url: 'https://res.cloudinary.com/dxrxiuei6/image/upload/v1658408146/LineRobot/cinema_pgxcmp.jpg',
         size: 'full',
         aspectRatio: '20:13',
         aspectMode: 'cover'
@@ -573,7 +624,7 @@ bot.on('message', async (event) => {
             type: 'bubble',
             hero: {
               type: 'image',
-              url: 'https://cdn.pixabay.com/photo/2018/01/16/10/36/mistake-3085712_1280.jpg',
+              url: 'https://res.cloudinary.com/dxrxiuei6/image/upload/v1658332881/LineRobot/error_auhrnp.png',
               size: 'full',
               aspectRatio: '20:13',
               aspectMode: 'cover'
@@ -602,7 +653,7 @@ bot.on('message', async (event) => {
             },
             styles: {
               body: {
-                backgroundColor: '#36ac96'
+                backgroundColor: '#ffc94d'
               }
             }
           }
