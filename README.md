@@ -1,4 +1,4 @@
-# 電影查詢機器人 #
+# 電影查詢機器人 (已廢棄)
 ### 可以透過輸入以下條件查詢電影 ( 中英文皆可 ) ：
 #### 1. 電影名稱
 #### 2. 電影明星
@@ -21,10 +21,6 @@
 ### 以「電影導演」查詢：
 <img src="img3.png" width = "50%" alt="電影導演查詢實例圖片"/>
 
----
-
-## 點擊加入好友 ↓
-<a href="https://lin.ee/19sd1JCmM"><img src="https://scdn.line-apps.com/n/line_add_friends/btn/zh-Hant.png" alt="加入好友" width=30% border="0"></a>
 ---
 
 # 使用的api
